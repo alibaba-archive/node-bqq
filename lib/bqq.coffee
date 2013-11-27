@@ -13,24 +13,12 @@ module.exports = bqq =
     user: 'usercallback'
     company: 'companycallback'
 
-company = {}
+bqq.company company = {}
 
-fetch = (cmd, query, callback) ->
-  source = request("https://#{path.join bqq.url, cmd}?#{qs.stringify query}")
-  data = ""
-  source.on 'data', (chunk) -> data += chunk
-  source.on 'end', ->
-    try
-      data = JSON.parse(data)
-    catch e
-      return callback e
-    callback null, data
-
-push = (cmd, query, callback) ->
-  dest = request
-    method: 'POST'
-    url: "https://#{path.join bqq.url, cmd}"
-    json: query,
+fetch = (method, cmd, query, callback) ->
+  request
+    method: method
+    url: "https://#{path.join bqq.url, cmd}?#{qs.stringify query}",
     (err, res, body) ->
       try
         data = JSON.parse(body)
@@ -42,8 +30,8 @@ baseParams = (company_id) ->
   return unless company[company_id]
   access_token: company[company_id].access_token
   company_id: company_id
-  app_id: key
-  client_ip: ip
+  app_id: bqq.key
+  client_ip: bqq.ip
   oauth_version: 2
 
 bqq.authURL = -> "https://" + bqq.url + "/oauth2/authorize?" + qs.stringify
@@ -54,7 +42,7 @@ bqq.authURL = -> "https://" + bqq.url + "/oauth2/authorize?" + qs.stringify
 
 bqq.codeHandler = (actor) -> (req, res, next) ->
   {query} = url.parse req.url, true
-  fetch 'oauth2/token',
+  fetch 'GET', 'oauth2/token',
     grant_type: "authorization_code"
     app_id: bqq.key
     app_secret: bqq.secret
@@ -63,31 +51,31 @@ bqq.codeHandler = (actor) -> (req, res, next) ->
     redirect_uri: bqq.handler[actor],
     (err, data) ->
       return res.end(err) if err
+      data = data.data
       if actor == 'user' then res.setHeader('Set-Cookie',qs.stringify(data))
       else company[data.open_id] = data
       req.access = data
       next()
 
+
 bqq.companyInfo = (company_id, cb) ->
-  fetch 'api/corporation/get', baseParams(company_id), cb
+  fetch 'GET', 'api/corporation/get', baseParams(company_id), cb
 
 bqq.memberList = (company_id, cb) ->
   query = baseParams(company_id)
   query.timestamp = 0
-  fetch 'api/user/list', query, cb
+  fetch 'GET', 'api/user/list', query, cb
 
-bqq.tips = (company_id, title, content, cb) ->
+bqq.tips = (company_id, params, receivers, cb) ->
   query = baseParams(company_id)
-  query.to_all = 1
+  if receivers instanceof Function
+    query.to_all = 1
+    cb = receivers
+  else
+    query.to_all = 0
+    query.receivers = receivers
   query.window_title = bqq.appName
-  query.tips_title = title
-  query.tips_content = content
-  push 'api/tips/send', query, cb
-
-bqq.broadcast = (company_id, title, content) ->
-  query = baseParams(company_id)
-  query.title = title
-  query.content = content
-  query.is_online = 1
-  query.recv_dept_ids = company_id
-  push 'api/broadcast/send', query, cb
+  query.tips_title = params.title
+  query.tips_content = params.content
+  if params.url then query.tips_url = params.url
+  fetch, 'POST', 'api/tips/send', query, cb
