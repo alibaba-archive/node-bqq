@@ -25,9 +25,9 @@ fetch = (method, cmd, query, callback) ->
         return callback e
       callback null, data
 
-baseParams = ->
-  access_token: @access_token
-  company_id: @company_id
+baseParams = (that)->
+  access_token: that.access_token
+  company_id: that.company_id
   app_id: bqq.key
   client_ip: bqq.ip
   oauth_version: 2
@@ -59,31 +59,31 @@ bqq.getToken = (actor, code, state, cb) ->
 
 
 bqq.companyInfo = (cb) ->
-  fetch 'GET', 'api/corporation/get', baseParams(), cb
+  fetch 'GET', 'api/corporation/get', baseParams(this), cb
 
 bqq.memberList = (cb) ->
-  query = baseParams()
+  query = baseParams(this)
   query.timestamp = 0
   fetch 'GET', 'api/user/list', query, cb
 
 bqq.face = (open_id, cb) ->
-  query = baseParams()
+  query = baseParams(this)
   query.open_ids = open_id
   query.type_id = 5
   fetch 'GET', 'api/user/face', query, cb
 
 bqq.email = (open_id, cb) ->
-  query = baseParams()
+  query = baseParams(this)
   query.open_ids = open_id
   fetch 'GET', 'api/user/email', query, cb
 
 bqq.qq = (open_id, cb) ->
-  query = baseParams()
+  query = baseParams(this)
   query.open_ids = open_id
   fetch 'GET', 'api/user/qq', query, cb
 
 bqq.tips = (params, receivers, cb) ->
-  query = baseParams()
+  query = baseParams(this)
   if receivers instanceof Function
     query.to_all = 1
     cb = receivers
@@ -97,7 +97,7 @@ bqq.tips = (params, receivers, cb) ->
   fetch 'POST', 'api/tips/send', query, cb
 
 bqq.verifyhashskey = (options, cb) ->
-  params = baseParams()
+  params = baseParams(this)
   params.open_id = options.open_id
   params.hashskey = options.hashskey
   fetch 'GET', 'api/login/verifyhashskey', params, cb
