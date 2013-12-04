@@ -95,6 +95,7 @@ class BQQ
     BQQ.fetch 'GET', 'oauth2/refresh', query, (err, data) ->
       return callback(err) if err
       return callback(data) if data.ret > 0
+      data.data.old = @token
       @token = data.data.access_token
       @refreshToken = data.data.refresh_token
       callback(null, data.data)
