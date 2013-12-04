@@ -15,7 +15,7 @@
     "type": "git",
     "url": "https://github.com/teambition/node-bqq.git"
   },
-  "author": "",
+  "author": "teambition",
   "license": "BSD-2-Clause",
   "bugs": {
     "url": "https://github.com/teambition/node-bqq/issues"
