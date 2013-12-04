@@ -41,7 +41,7 @@ class BQQ
     {@token, @refreshToken, @companyId} = options
 
   baseParams: ()->
-    access_token: @accessToken
+    access_token: @token
     company_id: @companyId
     app_id: BQQ.key
     client_ip: BQQ.ip
