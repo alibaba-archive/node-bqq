@@ -82,7 +82,7 @@ class BQQ
     BQQ.fetch 'POST', 'api/tips/send', query, callback
 
   verifyhashskey: (options, cb) ->
-    params = baseParams(this)
+    params = @baseParams()
     params.open_id = options.open_id
     params.hashskey = options.hashskey
     BQQ.fetch 'GET', 'api/login/verifyhashskey', params, cb
