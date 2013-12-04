@@ -81,10 +81,22 @@ class BQQ
     if url then query.tips_url = url
     BQQ.fetch 'POST', 'api/tips/send', query, callback
 
-  verifyhashskey: (options, cb) ->
+  verifyhashskey: (options, callback) ->
     params = @baseParams()
     params.open_id = options.open_id
     params.hashskey = options.hashskey
-    BQQ.fetch 'GET', 'api/login/verifyhashskey', params, cb
+    BQQ.fetch 'GET', 'api/login/verifyhashskey', params, callback
+
+  refresh: (callback) ->
+    query =
+      refresh_token: @refreshToken
+      app_id: BQQ.key
+      app_secret: BQQ.secret
+    BQQ.fetch 'GET', 'oauth2/refresh', query, (err, data) ->
+      return callback(err) if err
+      return callback(data) if data.ret > 0
+      @token = data.data.access_token
+      @refreshToken = data.data.refresh_token
+      callback(null, data.data)
 
 module.exports = BQQ
