@@ -4,7 +4,7 @@ request = require 'request'
 
 class BQQ
   @init: (options) ->
-    {@name, @key, @secret, @ip, @start} = options
+    {@appname, @key, @secret, @ip, @start} = options
     @url = 'openapi.b.qq.com'
     @initialized = true
     return @
@@ -75,7 +75,7 @@ class BQQ
     {receivers, title, content, url} = params
     query = @baseParams()
     if receivers then query.receivers = receivers else query.to_all = 1
-    query.window_title = BQQ.name
+    query.window_title = BQQ.appname
     query.tips_title = title
     query.tips_content = content
     if url then query.tips_url = url
