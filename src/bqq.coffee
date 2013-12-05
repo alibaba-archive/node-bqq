@@ -92,7 +92,7 @@ class BQQ
       refresh_token: @refreshToken
       app_id: BQQ.key
       app_secret: BQQ.secret
-    BQQ.fetch 'GET', 'oauth2/refresh', query, (err, data) ->
+    BQQ.fetch 'GET', 'oauth2/refresh', query, (err, data) =>
       return callback(err) if err
       return callback(data) if data.ret > 0
       data.data.old = @token
