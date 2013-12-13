@@ -50,10 +50,12 @@ class BQQ
   companyInfo: (callback) ->
     BQQ.fetch 'GET', 'api/corporation/get', @baseParams(), callback
 
-  memberList: () ->
-    callback = arguments.pop()
+  memberList: (timestamp, callback = ->) ->
+    if typeof timestamp is 'function'
+      callback = timestamp
+      timestamp = 0
     query = @baseParams()
-    query.timestamp = arguments[0] or 0
+    query.timestamp = timestamp
     BQQ.fetch 'GET', 'api/user/list', query, callback
 
   face: (openIds, callback) ->
