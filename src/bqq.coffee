@@ -4,7 +4,7 @@ request = require 'request'
 
 class BQQ
   @init: (options) ->
-    {@name, @key, @secret, @ip, @start} = options
+    {@appname, @key, @secret, @ip, @start} = options
     @url = 'openapi.b.qq.com'
     @initialized = true
     return @
@@ -41,7 +41,7 @@ class BQQ
     {@token, @refreshToken, @companyId} = options
 
   baseParams: ()->
-    access_token: @accessToken
+    access_token: @token
     company_id: @companyId
     app_id: BQQ.key
     client_ip: BQQ.ip
@@ -50,9 +50,12 @@ class BQQ
   companyInfo: (callback) ->
     BQQ.fetch 'GET', 'api/corporation/get', @baseParams(), callback
 
-  memberList: (callback) ->
+  memberList: (timestamp, callback = ->) ->
+    if typeof timestamp is 'function'
+      callback = timestamp
+      timestamp = 0
     query = @baseParams()
-    query.timestamp = 0
+    query.timestamp = timestamp
     BQQ.fetch 'GET', 'api/user/list', query, callback
 
   face: (openIds, callback) ->
@@ -75,16 +78,29 @@ class BQQ
     {receivers, title, content, url} = params
     query = @baseParams()
     if receivers then query.receivers = receivers else query.to_all = 1
-    query.window_title = BQQ.name
+    query.window_title = BQQ.appname
     query.tips_title = title
     query.tips_content = content
     if url then query.tips_url = url
     BQQ.fetch 'POST', 'api/tips/send', query, callback
 
-  verifyhashskey: (options, cb) ->
-    params = baseParams(this)
+  verifyhashskey: (options, callback) ->
+    params = @baseParams()
     params.open_id = options.open_id
     params.hashskey = options.hashskey
-    BQQ.fetch 'GET', 'api/login/verifyhashskey', params, cb
+    BQQ.fetch 'GET', 'api/login/verifyhashskey', params, callback
+
+  refresh: (callback) ->
+    query =
+      refresh_token: @refreshToken
+      app_id: BQQ.key
+      app_secret: BQQ.secret
+    BQQ.fetch 'GET', 'oauth2/refresh', query, (err, data) =>
+      return callback(err) if err
+      return callback(data) if data.ret > 0
+      data.data.old = @token
+      @token = data.data.access_token
+      @refreshToken = data.data.refresh_token
+      callback(null, data.data)
 
 module.exports = BQQ
